@@ -1,0 +1,7 @@
+/data
+/dev_data
+/venv
+**/__pycache__
+.idea
+/junk
+**/temp
