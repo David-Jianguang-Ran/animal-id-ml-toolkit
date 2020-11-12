@@ -19,5 +19,11 @@ if __name__ == "__main__":
     # call imported code here
     pass
 
+    # load some data
+    images, labels = load_and_combine_dataset("./data",[0])
+    # test cropper
+    new_images, new_labels = detect_and_crop(labels,images, input_shape=(240,240,3),output_shape=(240,240,3))
+
+    print(new_labels.head())
 
 

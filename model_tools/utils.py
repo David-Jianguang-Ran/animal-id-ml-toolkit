@@ -26,8 +26,8 @@ def compute_embeddings(data: SequentialGenerator, model: Model, include_labels=T
     # save to a data frame, return
     frame = pd.DataFrame(np.concatenate(embeddings, axis=0))
     if include_labels:
-        frame['animal_id'] = np.concatenate(labels,axis=0)
-        frame.set_index("animal_id")
+        frame['image_id'] = data._labels['image_id']
+        frame.set_index(["image_id"], inplace=True)
     return frame
 
 

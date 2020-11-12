@@ -1,5 +1,6 @@
 /data
 /dev_data
+/models
 /venv
 **/__pycache__
 .idea
