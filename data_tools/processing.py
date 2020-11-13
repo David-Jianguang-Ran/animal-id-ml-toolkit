@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 from uuid import uuid4
 from sklearn.cluster import DBSCAN
 
-from tensorflow.keras import Model
+from tensorflow.keras.models import load_model, Model
+from tensorflow.keras.applications.xception import preprocess_input
 
 from .object_detection import YOLO
 from .settings import *
@@ -80,6 +81,7 @@ def _get_identity_input(image_count):
 
 def _batched_operations_by_id(decoratee):
     """
+    TODO: These batch operations functions have weird function signitures, fix it or it will be too confusing soon!
     this decorator takes a batch wise operation and run it ove each set grouped by user_id
     *_note:_* DON"T SAVE OUTPUT AS IS. image data stored as a single row, indexed by image_id, just like input!
     """
@@ -112,11 +114,15 @@ def _batched_operations_by_id(decoratee):
             selected_images = images.loc[selected_images].values.reshape((-1, *input_shape))
 
             print(f"batch{i}/{len(unique_ids) - 1}, id {user_id}")
-            found_images, found_image_ids, found_animal_ids = decoratee(selected_images, user_id, *args, **kwargs)
+            found_images, found_image_ids, found_animal_ids = decoratee(user_id, selected_images, *args, **kwargs)
 
             out_images += found_images
             out_image_ids += found_image_ids
             out_animal_ids += found_animal_ids
+
+        if len(out_image_ids) == 0:
+            print("WARNING: 0 images has been found. Something isn't right!")
+            return pd.DataFrame(), pd.DataFrame(columns=["image_id", "animal_id"])
 
         # combine data into dataframes
         out_images = pd.DataFrame(np.concatenate(out_images, axis=0))
@@ -153,34 +159,35 @@ def manual_identify(shared_id, batch_images):
     for i in range(batch_images.shape[0]):
         axs[i // grid_size, i % grid_size].imshow(batch_images[i])
         axs[i // grid_size, i % grid_size].set_title(f"{i}")
-        plt.show()
-        plt.close()
 
-        # receive input from human operator
-        human_input = []
-        while True:
-            try:
-                human_input = _get_identity_input(batch_images.shape[0])
-                break
-            except RestartInput:
-                continue
+    plt.show()
+    plt.close()
 
-        # make new ids,  mark unselected as 0.
-        new_animal_ids = [0.0 for i in range(batch_images.shape[0])]
-        for i, selected_indexes in enumerate(human_input):
-            for each_index in selected_indexes:
-                new_animal_ids[each_index] = _animal_id_suffixed(shared_id, i)
+    # receive input from human operator
+    human_input = []
+    while True:
+        try:
+            human_input = _get_identity_input(batch_images.shape[0])
+            break
+        except RestartInput:
+            continue
 
-        # if image is selected, add to output collection
-        for i, each in enumerate(new_animal_ids):
-            if each == 0.0:
-                pass
-            else:
-                out_images.append(batch_images[i].reshape((1, -1)))
-                out_animal_ids.append(each)
-                out_image_ids.append(_new_short_id())
+    # make new ids,  mark unselected as 0.
+    new_animal_ids = [0.0 for i in range(batch_images.shape[0])]
+    for i, selected_indexes in enumerate(human_input):
+        for each_index in selected_indexes:
+            new_animal_ids[each_index] = _animal_id_suffixed(shared_id, i)
 
-    return out_images, out_animal_ids, out_image_ids
+    # if image is selected, add to output collection
+    for i, each in enumerate(new_animal_ids):
+        if each == 0.0:
+            pass
+        else:
+            out_images.append(batch_images[i].reshape((1, -1)))
+            out_image_ids.append(_new_short_id())
+            out_animal_ids.append(each)
+
+    return out_images,  out_image_ids, out_animal_ids,
 
 
 @_batched_operations_by_id
@@ -206,7 +213,7 @@ def detect_and_crop(shared_id, batch_images, output_shape=(180, 180, 3)):
 
 
 @_batched_operations_by_id
-def clean_with_encoder(shared_id, batch_images, encoder:Model=None):
+def clean_with_encoder(shared_id, batch_images, encoder: Model = None):
     """
     *_This function has been wrapped in a decorator_*
     see source code of decorator for usage
@@ -215,9 +222,24 @@ def clean_with_encoder(shared_id, batch_images, encoder:Model=None):
     if encoder is None:
         raise ValueError("A vector encoder is required for this operation")
 
+    # input images needs to be preprocessed
     # obtain batch embeddings
-    embeddings = encoder.predict_on_batch(batch_images)
+    embeddings = encoder.predict_on_batch(preprocess_input(batch_images))
 
+    # do clustering on embeddings
+    possible_identities = DBSCAN(eps=DBSCAN_EPS, min_samples=DBSCAN_MIN_SAMP).fit_predict(embeddings)
 
+    out_images = []
+    out_image_ids = []
+    out_animal_ids = []
 
-    return [], [], []
+    # if image is selected, add to output collection
+    for i, learned_label in enumerate(possible_identities):
+        if learned_label == -1:  # <= learned label -1 means noise or outlier
+            pass
+        else:
+            out_images.append(batch_images[i].reshape((1, -1)))
+            out_image_ids.append(_new_short_id())
+            out_animal_ids.append(_animal_id_suffixed(shared_id, learned_label))
+
+    return out_images,  out_image_ids, out_animal_ids,

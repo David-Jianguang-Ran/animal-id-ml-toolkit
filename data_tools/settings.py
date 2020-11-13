@@ -15,6 +15,10 @@ MIN_IMAGE_PER_USER = 3
 MAX_REQUEST_PER_TAG = 50
 USERS_PER_TAG = 1000
 
+# processing related
+DBSCAN_EPS = 20.
+DBSCAN_MIN_SAMP = 3
+
 # api query_id / hashes
 # 17888483320059182 id to media
 # 9b498c08113f1e09617a1703c22b2f32 hashtag to media
