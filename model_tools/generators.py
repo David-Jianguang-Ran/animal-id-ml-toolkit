@@ -108,17 +108,17 @@ class PairedEmbeddingGenerator(Sequence):
     to select image by image_id
     d.T.loc[l[:50]["image_id"]]
     """
-    def __init__(self, base_path, chunk_nums, batch_size):
+    def __init__(self, base_path, data_nums, batch_size=256, label_nums=(0,)):
         self.batch_size = batch_size
 
         # read each embedding_data chunk into memory,
         # note each embedding was stored as a column in parquet file,
         # here we flip the axis to each image is a row and index of each image is it's image_id
         self._data = pd.DataFrame()
-        for each_num in chunk_nums:
+        for each_num in data_nums:
             self._data = append_image_data_chunk(self._data, f"{base_path}/embeddings_{each_num}.parquet")
 
-        self._labels = pd.concat([pd.read_csv(f"{base_path}/dataset_labels_{each_num}.csv", index_col=0)for each_num in chunk_nums])
+        self._labels = pd.concat([pd.read_csv(f"{base_path}/dataset_labels_{each_num}.csv", index_col=0)for each_num in label_nums])
 
     def __len__(self):
         return self._labels.shape[0] // (self.batch_size // 2)

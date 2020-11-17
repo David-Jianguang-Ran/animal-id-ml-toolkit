@@ -16,7 +16,7 @@ MAX_REQUEST_PER_TAG = 50
 USERS_PER_TAG = 1000
 
 # processing related
-DBSCAN_EPS = 20.
+DBSCAN_EPS = 10.
 DBSCAN_MIN_SAMP = 3
 
 # api query_id / hashes

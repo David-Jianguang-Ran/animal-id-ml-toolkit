@@ -16,14 +16,11 @@ from tensorflow.keras.applications.xception import preprocess_input
 
 from .object_detection import YOLO
 from .settings import *
+from .utils import plot_image_batch, new_short_id
 
 
 class RestartInput(Exception):
     pass
-
-
-def _new_short_id():
-    return str(uuid4())[-12:]
 
 
 def _animal_id_suffixed(prev_id: float, num: int, addition_base=0.5) -> float:
@@ -81,7 +78,7 @@ def _get_identity_input(image_count):
 
 def _batched_operations_by_id(decoratee):
     """
-    TODO: These batch operations functions have weird function signitures, fix it or it will be too confusing soon!
+    TODO: These batch operations functions have weird function signatures, fix it or it will be too confusing soon!
     this decorator takes a batch wise operation and run it ove each set grouped by user_id
     *_note:_* DON"T SAVE OUTPUT AS IS. image data stored as a single row, indexed by image_id, just like input!
     """
@@ -146,22 +143,7 @@ def manual_identify(shared_id, batch_images):
     this function processes a single batch grouped by user_id
     """
     # plot out images for manual inspection
-    grid_size = int(np.floor(np.sqrt(batch_images.shape[0]))) + 1
-    fig, axs = plt.subplots(grid_size, grid_size, figsize=(6,6))  # <= note that axs is a ndarray shape grid,grid with subplots inside
-
-    fig.suptitle(f"found {batch_images.shape[0]} images for id {shared_id}")
-    print(f"identifying for id {shared_id}")
-
-    out_images = []
-    out_image_ids = []
-    out_animal_ids = []
-    # plot each image and i in subplot
-    for i in range(batch_images.shape[0]):
-        axs[i // grid_size, i % grid_size].imshow(batch_images[i])
-        axs[i // grid_size, i % grid_size].set_title(f"{i}")
-
-    plt.show()
-    plt.close()
+    plot_image_batch(shared_id=shared_id, batch_images=batch_images)
 
     # receive input from human operator
     human_input = []
@@ -178,13 +160,16 @@ def manual_identify(shared_id, batch_images):
         for each_index in selected_indexes:
             new_animal_ids[each_index] = _animal_id_suffixed(shared_id, i)
 
+    out_images = []
+    out_image_ids = []
+    out_animal_ids = []
     # if image is selected, add to output collection
     for i, each in enumerate(new_animal_ids):
         if each == 0.0:
             pass
         else:
             out_images.append(batch_images[i].reshape((1, -1)))
-            out_image_ids.append(_new_short_id())
+            out_image_ids.append(new_short_id())
             out_animal_ids.append(each)
 
     return out_images,  out_image_ids, out_animal_ids,
@@ -208,7 +193,7 @@ def detect_and_crop(shared_id, batch_images, output_shape=(180, 180, 3)):
         # reshape images into dataset row and collect,
         # make image ids and animal ids
         return [found_images.reshape((len(found_labels), -1))], \
-            [_new_short_id() for each in found_labels] , \
+            [new_short_id() for each in found_labels] , \
             [float(np.floor(shared_id) + ID_SUFFIX[each]) for each in found_labels]
 
 
@@ -239,7 +224,15 @@ def clean_with_encoder(shared_id, batch_images, encoder: Model = None):
             pass
         else:
             out_images.append(batch_images[i].reshape((1, -1)))
-            out_image_ids.append(_new_short_id())
+            out_image_ids.append(new_short_id())
             out_animal_ids.append(_animal_id_suffixed(shared_id, learned_label))
 
     return out_images,  out_image_ids, out_animal_ids,
+
+
+@_batched_operations_by_id
+def manual_inspect(shared_id, batch_images):
+    plot_image_batch(shared_id=shared_id, batch_images=batch_images)
+    input("press anything to continue")
+    return [], [], []
+

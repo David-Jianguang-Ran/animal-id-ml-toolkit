@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+
 import re
+
+from uuid import uuid4
 
 
 def append_image_data_chunk(image_frame: pd.DataFrame, file_to_append: str):
@@ -36,3 +40,25 @@ def string_contains(__str: str, __words: list):
         if result.__len__() != 0:
             __output.append(each_word)
     return __output
+
+
+def plot_image_batch(shared_id=None,batch_images=None):
+    # plot out images for manual inspection
+    grid_size = int(np.floor(np.sqrt(batch_images.shape[0]))) + 1
+    fig, axs = plt.subplots(grid_size, grid_size, figsize=(6,6))  # <= note that axs is a ndarray shape grid,grid with subplots inside
+
+    fig.suptitle(f"found {batch_images.shape[0]} images for id {shared_id}")
+    print(f"identifying for id {shared_id}")
+
+    # plot each image and i in subplot
+    for i in range(batch_images.shape[0]):
+        axs[i // grid_size, i % grid_size].imshow(batch_images[i])
+        axs[i // grid_size, i % grid_size].set_title(f"{i}")
+
+    plt.show()
+    plt.close()
+
+
+
+def new_short_id():
+    return str(uuid4())[-12:]
