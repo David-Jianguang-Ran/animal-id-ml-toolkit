@@ -10,13 +10,13 @@ from PIL import Image
 from .queries import hashtag_to_media_query, username_to_media_query, user_id_to_media_query, id_to_username_query
 from .settings import *
 
-from .utils import string_contains, load_and_combine_dataset
+from .utils import string_contains, load_and_combine_dataset, fancy_print
 
 
 def find_id_by_hashtag(hashtag, user_count):
     ids = set()
     tag_start_time = time.time()
-    print(f"discovering by tag {hashtag}")
+    fancy_print(f"discovering by tag {hashtag}", verbosity=1)
     starting_lead_count = len(ids)
     end_cursor = None
     request_count = 0
@@ -32,9 +32,9 @@ def find_id_by_hashtag(hashtag, user_count):
 
         end_cursor = hashtag_dict['edge_hashtag_to_media']["page_info"]["end_cursor"]
 
-        print(f"request# {request_count}, found {len(ids) - starting_lead_count}/{user_count}")
+        fancy_print(f"request# {request_count}, found {len(ids) - starting_lead_count}/{user_count}",verbosity=2)
 
-    print(f"found <{len(ids)}> users for tag <{hashtag}, time spent {time.time() - tag_start_time:.3} seconds, requests made {request_count}>")
+    fancy_print(f"found <{len(ids)}> users for tag <{hashtag}, time spent {time.time() - tag_start_time:.3} seconds, requests made {request_count}>")
     return ids
 
 
@@ -91,7 +91,7 @@ def discover_images(ids, file_path):
 
         shortcodes = []
         user_start_time = time.time()
-        print(f"discoverting images by userid{each_userid}")
+        fancy_print(f"discoverting images by userid{each_userid}", verbosity=1)
 
         # keep requesting until image limit or request limit
         starting_code_count = len(shortcodes)
@@ -150,7 +150,7 @@ def download_username_by_hashtags(hashtags: [], users_per_tag=300, output_name=T
     # save file to disk
     frame = pd.DataFrame(data=list(found), columns=["username" if output_name else "user_id"])
     frame.to_csv(f"./dev_data/auto_targeted_accounts_{identifier}.csv")
-    print(f"found {frame.shape[0]} users, time spent {time.time() - start_time:.3} seconds, file id:{identifier}")
+    fancy_print(f"found {frame.shape[0]} users, time spent {time.time() - start_time:.3} seconds, file id:{identifier}")
 
 
 def download_dataset_from_usernames(usernames, chunk_num):
@@ -205,7 +205,7 @@ def download_dataset_from_usernames(usernames, chunk_num):
                 try:
                     image = Image.open(requests.get(url, stream=True).raw)
                 except:
-                    print(f"connection failed")
+                    fancy_print(f"connection failed")
                     continue
 
                 image = np.array(image).reshape([-1])

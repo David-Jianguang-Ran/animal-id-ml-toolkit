@@ -14,6 +14,8 @@ from pathlib import Path
 from .yolov3 import WeightReader, BoundBox, make_yolov3_model, preprocess_input_yolo, decode_netout, do_nms, correct_yolo_boxes
 from .yolov3 import ANCHORS, COCO_LABELS
 
+from .utils import fancy_print
+
 from tensorflow.keras.applications.xception import Xception, decode_predictions, preprocess_input as preprocess_input_xception
 
 # TODO change default weight path to project_root/models/temp
@@ -70,9 +72,9 @@ class YOLO:
         # ensure weights exist:
         if os.path.isfile(weight_path):
             cls.__weights = weight_path
-            return print(f"weights file found at {weight_path}")
+            return fancy_print(f"weights file found at {weight_path}")
         else:
-            print(f"downloading pretrained weights from {WEIGHT_URL}")
+            fancy_print(f"downloading pretrained weights from {WEIGHT_URL}")
 
         # ensure we have a dir to put downloaded file
         os.makedirs(WEIGHT_PATH.parent, exist_ok=True)
@@ -82,7 +84,7 @@ class YOLO:
             with open(WEIGHT_PATH, "wb") as file:
                 shutil.copyfileobj(r.raw, file)
 
-        print(f"saved file to {weight_path}")
+        fancy_print(f"saved file to {weight_path}")
 
     @classmethod
     def _load_model(cls, weight_path):
@@ -168,7 +170,7 @@ class YOLO:
                     # do crop and resize
                     new_image = cv2.resize(image[crop_x[0]:crop_x[1], crop_y[0]:crop_y[1], :], output_shape[:2])
                 except cv2.error:
-                    print(f"WARNING: cv2.error caught during new image resize, new image dimension {(crop_x, crop_y)}")
+                    fancy_print(f"WARNING: cv2.error caught during new image resize, new image dimension {(crop_x, crop_y)}")
                     break
 
                 # restore the batch dimension if that's how image was passed in

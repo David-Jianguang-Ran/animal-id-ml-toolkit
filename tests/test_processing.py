@@ -6,10 +6,11 @@ import numpy as np
 
 from unittest.mock import MagicMock
 
-from data_tools.processing import _batched_operations_by_id, _new_short_id
+from data_tools.processing import _batched_operations_by_id, new_short_id
 from data_tools.processing import *
 from data_tools.utils import load_and_combine_dataset
 
+VERBOSITY = 0
 
 def get_dummy_data(row_count, row_width=27):
     """this function returns dummy images, label data in pd.DataFrame"""
@@ -44,7 +45,7 @@ class MockDataTest(unittest.TestCase):
         def mock_inner(labels, images):
             self.assertTrue(len(images.shape) == 4)
 
-            return [images.reshape((-1,27))], [_new_short_id() for i in range(images.shape[0])], [labels for i in range(images.shape[0])]
+            return [images.reshape((-1,27))], [new_short_id() for i in range(images.shape[0])], [labels for i in range(images.shape[0])]
 
         # decorate
         decorated = _batched_operations_by_id(mock_inner)

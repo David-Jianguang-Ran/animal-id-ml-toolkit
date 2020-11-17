@@ -16,7 +16,7 @@ from tensorflow.keras.applications.xception import preprocess_input
 
 from .object_detection import YOLO
 from .settings import *
-from .utils import plot_image_batch, new_short_id
+from .utils import plot_image_batch, new_short_id, fancy_print
 
 
 class RestartInput(Exception):
@@ -110,7 +110,7 @@ def _batched_operations_by_id(decoratee):
             selected_images = labels[labels["user_id"] == user_id]["image_id"]
             selected_images = images.loc[selected_images].values.reshape((-1, *input_shape))
 
-            print(f"batch{i}/{len(unique_ids) - 1}, id {user_id}")
+            fancy_print(f"batch{i}/{len(unique_ids) - 1}, id {user_id}", verbosity=1)
             found_images, found_image_ids, found_animal_ids = decoratee(user_id, selected_images, *args, **kwargs)
 
             out_images += found_images
@@ -118,7 +118,7 @@ def _batched_operations_by_id(decoratee):
             out_animal_ids += found_animal_ids
 
         if len(out_image_ids) == 0:
-            print("WARNING: 0 images has been found. Something isn't right!")
+            fancy_print("WARNING: 0 images has been found. Something isn't right!", verbosity=0)
             return pd.DataFrame(), pd.DataFrame(columns=["image_id", "animal_id"])
 
         # combine data into dataframes

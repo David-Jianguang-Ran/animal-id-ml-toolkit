@@ -3,7 +3,7 @@ import json
 import time
 
 from .settings import BASE_URL, BACK_OFF_TIMER, DELAY_PER_REQUEST
-
+from .utils import fancy_print
 
 def user_id_to_media_query(user_id, first=20, __end_cursor=None) -> dict:
     # make a get request
@@ -19,39 +19,39 @@ def user_id_to_media_query(user_id, first=20, __end_cursor=None) -> dict:
         })
     }
 
-    print(f"GET {url}")
+    fancy_print(f"GET {url}", verbosity=2)
 
     response = requests.get(url, params=params)
 
     if response.status_code == 200:
         return response.json()['data']['user']['edge_owner_to_timeline_media']
     elif response.status_code == 429:
-        print(f"429 Backing off for {BACK_OFF_TIMER} seconds")
+        fancy_print(f"429 Backing off for {BACK_OFF_TIMER} seconds")
     else:
-        print(response.status_code)
+        fancy_print(response.status_code)
 
 
 def username_to_media_query(__username: str):
     # can't turn pages here... >_<
     url = f"https://www.instagram.com/{__username}/?__a=1"
-    print(f"GET {url}")
+    fancy_print(f"GET {url}", verbosity=2)
     try:
         response = requests.get(url)
     except:
-        print("connection_refused")
+        fancy_print("connection_refused")
         return
 
     if response.status_code == 200:
         try:
             return response.json()["graphql"]["user"]['edge_owner_to_timeline_media']["edges"]
         except (KeyError, json.JSONDecodeError):
-            print("request_failed")
+            fancy_print("request_failed")
             return
     elif response.status_code == 429:
-        print(response.status_code)
+        fancy_print(response.status_code)
         time.sleep(BACK_OFF_TIMER)
     else:
-        print(response.status_code)
+        fancy_print(response.status_code)
 
 
 def shortcode_media_query(__shortcode):
@@ -66,16 +66,16 @@ def shortcode_media_query(__shortcode):
         })
     }
 
-    print(f"GET {url} {params}")
+    fancy_print(f"GET {url} {params}", verbosity=2)
     response = requests.get(url, params=params)
 
     if response.status_code == 200:
         return response.json()['data']['shortcode_media']
     elif response.status_code == 429:
-        print(response.status_code)
+        fancy_print(response.status_code)
         time.sleep(BACK_OFF_TIMER)
     else:
-        print(response.status_code)
+        fancy_print(response.status_code)
         return {}
 
 
@@ -91,15 +91,15 @@ def hashtag_to_media_query(__hashtag, __end_cursor=None):
         })
     }
 
-    print(f"GET {url}")
+    fancy_print(f"GET {url}", verbosity=2)
     response = requests.get(url, params=params)
     if response.status_code == 200:
         return response.json()["data"]["hashtag"]
     elif response.status_code == 429:
-        print(response.status_code)
+        fancy_print(response.status_code)
         time.sleep(BACK_OFF_TIMER)
     else:
-        print(response.status_code)
+        fancy_print(response.status_code)
 
 
 def id_to_username_query(__id):
@@ -113,11 +113,11 @@ def id_to_username_query(__id):
         })
     }
 
-    print(f"GET {url} params {params}")
+    fancy_print(f"GET {url} params {params}", verbosity=2)
     try:
         response = requests.get(url, params=params)
     except:
-        print("connection failed")
+        fancy_print("connection failed")
         time.sleep(BACK_OFF_TIMER)
         return
 
@@ -125,9 +125,9 @@ def id_to_username_query(__id):
         try:
             return response.json()['data']['user']['edge_owner_to_timeline_media']["edges"][0]["node"]['owner']['username']
         except (KeyError, ValueError, TypeError, IndexError, json.JSONDecodeError):
-            print("request failed")
+            fancy_print("request failed")
     elif response.status_code == 429:
-        print(response.status_code)
+        fancy_print(response.status_code)
         time.sleep(BACK_OFF_TIMER)
     else:
-        print(response.status_code)
+        fancy_print(response.status_code)

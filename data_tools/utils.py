@@ -5,6 +5,12 @@ import matplotlib.pyplot as plt
 import re
 
 from uuid import uuid4
+from .settings import VERBOSITY
+
+
+def fancy_print(to_print, verbosity=0):
+    if VERBOSITY >= verbosity:
+        print(to_print)
 
 
 def append_image_data_chunk(image_frame: pd.DataFrame, file_to_append: str):
