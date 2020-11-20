@@ -76,20 +76,23 @@ def plot_image_batch(shared_id=None,batch_images=None):
 def download_sample_dataset(image_url=SAMPLE_IMAGES_URL, label_url=SAMPLE_LABELS_URL):
     # download and save to disk
     target_dir = "./data/sample"
-    image_path = download_to_path(target_path=target_dir + "/dataset_0.parquet",target_url=image_url)
-    label_path = download_to_path(target_path=target_dir + "/dataset_labels_0.parquet",target_url=label_url)
+    image_path = download_to_path(target_path=Path(target_dir + "/dataset_0.parquet"),target_url=image_url)
+    label_path = download_to_path(target_path=Path(target_dir + "/dataset_labels_0.parquet"),target_url=label_url)
     # return path of dataset directory
     return target_dir
 
 
 # getting files from hosted storage
 def download_to_path(target_url, target_path, human_name="file"):
+    if isinstance(target_path, str):
+        target_path = Path(target_path)
+
     # ensure weights exist:
     if os.path.isfile(target_path):
         return fancy_print(f"existing file found at {target_path}, download skipped")
     else:
         fancy_print(f"downloading {human_name} from {target_url}")
-        target_path = Path(target_path)
+
 
     # ensure we have a dir to put downloaded file
     os.makedirs(target_path.parent, exist_ok=True)
