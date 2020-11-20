@@ -1,10 +1,13 @@
 import requests
 import json
 import time
+import os
+import shutil
 
 from .settings import BASE_URL, BACK_OFF_TIMER, DELAY_PER_REQUEST
 from .utils import fancy_print
 
+# these functions are for querying SOCIAL MEDIA!
 def user_id_to_media_query(user_id, first=20, __end_cursor=None) -> dict:
     # make a get request
     # what happens when an anonymous user queries private users? No user to timeline media is returned
@@ -131,3 +134,23 @@ def id_to_username_query(__id):
         time.sleep(BACK_OFF_TIMER)
     else:
         fancy_print(response.status_code)
+
+
+# getting files from hosted storage
+def download_to_path(target_url, target_path, human_name="file"):
+    # ensure weights exist:
+    if os.path.isfile(target_path):
+        return fancy_print(f"existing file found at {target_path}, download skipped")
+    else:
+        fancy_print(f"downloading {human_name} from {target_url}")
+
+    # ensure we have a dir to put downloaded file
+    os.makedirs(target_path.parent, exist_ok=True)
+
+    # do request
+    with requests.get(target_url, stream=True) as r:
+        with open(target_path, "wb") as file:
+            shutil.copyfileobj(r.raw, file)
+
+    fancy_print(f"saved {human_name} to {target_path}")
+    return target_path

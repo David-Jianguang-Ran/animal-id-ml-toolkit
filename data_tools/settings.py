@@ -21,6 +21,10 @@ VERBOSITY = 1
 DBSCAN_EPS = 10.
 DBSCAN_MIN_SAMP = 3
 
+# Sample data and model
+SAMPLE_IMAGES_URL = "https://drive.google.com/file/d/17SSe00BESb7KU8EI1u8fULXdYFkPrKN0/view?usp=sharing"
+SAMPLE_LABELS_URL = "https://drive.google.com/file/d/1ZbQ95Zrbm4fyUSF_e_Bk2nvM57uyMXBl/view?usp=sharing"
+
 # api query_id / hashes
 # 17888483320059182 id to media
 # 9b498c08113f1e09617a1703c22b2f32 hashtag to media

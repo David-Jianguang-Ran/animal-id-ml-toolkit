@@ -3,10 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import re
+import time
+import os
 
 from uuid import uuid4
-from .settings import VERBOSITY
 
+from .settings import VERBOSITY, SAMPLE_LABELS_URL, SAMPLE_IMAGES_URL
+from .queries import download_to_path
 
 def fancy_print(to_print, verbosity=0):
     if VERBOSITY >= verbosity:
@@ -63,7 +66,16 @@ def plot_image_batch(shared_id=None,batch_images=None):
 
     plt.show()
     plt.close()
+    time.sleep(0.5)  # <= this is here to stop image plot from being shown after text input
 
+
+def download_sample_dataset(image_url=SAMPLE_IMAGES_URL, label_url=SAMPLE_LABELS_URL):
+    # download and save to disk
+    target_dir = "./data/sample"
+    image_path = download_to_path(target_path=target_dir + "/dataset_0.parquet",target_url=image_url)
+    label_path = download_to_path(target_path=target_dir + "/dataset_labels_0.parquet",target_url=label_url)
+    # return path of dataset directory
+    return target_dir
 
 
 def new_short_id():

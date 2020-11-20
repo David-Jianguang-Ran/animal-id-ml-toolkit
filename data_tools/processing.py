@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+import time
+
 from uuid import uuid4
 from sklearn.cluster import DBSCAN
 
@@ -231,8 +233,12 @@ def clean_with_encoder(shared_id, batch_images, encoder: Model = None):
 
 
 @_batched_operations_by_id
-def manual_inspect(shared_id, batch_images):
+def manual_inspect(shared_id, batch_images,auto_run=False):
     plot_image_batch(shared_id=shared_id, batch_images=batch_images)
-    input("press anything to continue")
+    if auto_run:
+        time.sleep(5)
+    else:
+        time.sleep(1)
+        input("press anything to continue")
     return [], [], []
 

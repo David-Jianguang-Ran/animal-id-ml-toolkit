@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import time
+
 from tensorflow.keras.models import Model, load_model
 
 from sklearn.decomposition import PCA
@@ -9,6 +11,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 from .generators import SequentialGenerator
 from .encoder import proximity_hits
+
+from data_tools.queries import download_to_path
 
 # TODO : there is a lot of redundant code here. refactor!
 
@@ -83,7 +87,7 @@ def run_proximity_hits(model, data_gen, prox=4.0, k=6):
     return np.average(results)
 
 
-def _normalize_meanstd(input_array, axis=(1, 2)):
+def normalize_meanstd(input_array, axis=(1, 2)):
     """
     normalize input value to std_dev to batch mean
     :param input_array: ndarray shape (batch_size , height, width, channels),
@@ -95,3 +99,34 @@ def _normalize_meanstd(input_array, axis=(1, 2)):
     std = np.sqrt(((input_array - mean) ** 2).mean(axis=axis, keepdims=True))
     return (input_array - mean) / std
 
+
+def plot_pairs(image_left, image_right, true, pred, pixel_range="-1,1"):
+    fig, axes = plt.subplots(1,2)
+
+    # undo normalization
+    if pixel_range == "-1,1":
+        image_left += 1.0
+        image_left *= 127
+        image_right += 1.0
+        image_right *= 127
+    elif pixel_range == "0,1":
+        image_left *= 255
+        image_right *= 255
+
+    fig.suptitle(f"truth = {true}, predicted = {pred}")
+
+    axes[0].imshow(image_left)
+    axes[1].imshow(image_right)
+
+    plt.show()
+    plt.close()
+    time.sleep(0.5)
+
+
+def download_sample_model(model_url):
+    # download saved model files
+    model_path = "./models/sample_end_to_end"
+    download_to_path(target_url=model_url,target_path=model_path)
+    # load model from path and return keras.Model instance
+    mod = load_model(model_path)
+    return mod
