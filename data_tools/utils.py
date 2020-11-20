@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import re
+import requests
 import time
 import os
 
 from uuid import uuid4
 
 from .settings import VERBOSITY, SAMPLE_LABELS_URL, SAMPLE_IMAGES_URL
-from .queries import download_to_path
+
 
 def fancy_print(to_print, verbosity=0):
     if VERBOSITY >= verbosity:
@@ -76,6 +77,25 @@ def download_sample_dataset(image_url=SAMPLE_IMAGES_URL, label_url=SAMPLE_LABELS
     label_path = download_to_path(target_path=target_dir + "/dataset_labels_0.parquet",target_url=label_url)
     # return path of dataset directory
     return target_dir
+
+# getting files from hosted storage
+def download_to_path(target_url, target_path, human_name="file"):
+    # ensure weights exist:
+    if os.path.isfile(target_path):
+        return fancy_print(f"existing file found at {target_path}, download skipped")
+    else:
+        fancy_print(f"downloading {human_name} from {target_url}")
+
+    # ensure we have a dir to put downloaded file
+    os.makedirs(target_path.parent, exist_ok=True)
+
+    # do request
+    with requests.get(target_url, stream=True) as r:
+        with open(target_path, "wb") as file:
+            shutil.copyfileobj(r.raw, file)
+
+    fancy_print(f"saved {human_name} to {target_path}")
+    return target_path
 
 
 def new_short_id():

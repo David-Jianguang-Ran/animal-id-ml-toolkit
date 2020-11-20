@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import time
+import random
 
 from tensorflow.keras.models import Model, load_model
 
@@ -12,7 +13,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from .generators import SequentialGenerator
 from .encoder import proximity_hits
 
-from data_tools.queries import download_to_path
+from data_tools.utils import download_to_path
 
 # TODO : there is a lot of redundant code here. refactor!
 
@@ -130,3 +131,26 @@ def download_sample_model(model_url):
     # load model from path and return keras.Model instance
     mod = load_model(model_path)
     return mod
+
+
+def demo_per_batch(image_left, image_right, sameness, model, show_error=False):
+    # get predictions from model
+    left_embeddings, right_embeddings, sameness_pred = model.predict_on_batch([image_left, image_right])
+
+    # compute a error to correct array
+    correctness = np.equal(np.round(sameness_pred),sameness)
+
+    # pick a few random number in selected set
+    picked = [random.choice(np.where(correctness != show_error))for i in range(3)]
+
+    # plot picked pairs
+    for index in picked:
+        plot_pairs(image_left[index],image_right[index],sameness[index],sameness_pred[index])
+
+    # show a projection of all embeddings for batch
+    # labeled by correctness
+    plot_embeddings(
+        np.concatenate([left_embeddings,right_embeddings], axis=0),
+        np.concatenate([correctness,correctness],axis=0),
+        f"batch average accuracy {np.average(correctness)}"
+    )
