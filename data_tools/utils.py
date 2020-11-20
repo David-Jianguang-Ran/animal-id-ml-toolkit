@@ -4,10 +4,13 @@ import matplotlib.pyplot as plt
 
 import re
 import requests
+import shutil
 import time
 import os
 
+
 from uuid import uuid4
+from pathlib import Path
 
 from .settings import VERBOSITY, SAMPLE_LABELS_URL, SAMPLE_IMAGES_URL
 
@@ -78,6 +81,7 @@ def download_sample_dataset(image_url=SAMPLE_IMAGES_URL, label_url=SAMPLE_LABELS
     # return path of dataset directory
     return target_dir
 
+
 # getting files from hosted storage
 def download_to_path(target_url, target_path, human_name="file"):
     # ensure weights exist:
@@ -85,6 +89,7 @@ def download_to_path(target_url, target_path, human_name="file"):
         return fancy_print(f"existing file found at {target_path}, download skipped")
     else:
         fancy_print(f"downloading {human_name} from {target_url}")
+        target_path = Path(target_path)
 
     # ensure we have a dir to put downloaded file
     os.makedirs(target_path.parent, exist_ok=True)
