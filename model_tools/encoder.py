@@ -12,7 +12,7 @@ from tensorflow.keras.callbacks import Callback
 from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 
-from keras.callbacks import Callback
+from tensorflow.keras.callbacks import Callback
 
 from scipy.spatial import KDTree
 

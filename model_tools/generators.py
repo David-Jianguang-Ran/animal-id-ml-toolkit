@@ -6,8 +6,8 @@ import numpy as np
 import random
 
 
-from keras.utils import Sequence
-from keras.applications.xception import preprocess_input
+from tensorflow.keras.utils import Sequence
+from tensorflow.keras.applications.xception import preprocess_input
 
 from data_tools.utils import append_image_data_chunk
 
